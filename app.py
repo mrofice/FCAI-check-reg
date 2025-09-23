@@ -68,13 +68,17 @@ def check_registration():
     except Exception:
         return jsonify({"status": "error", "message": "Failed to fetch courses"}), 500
 
-    # 3. Compare with CLOSED_STATE
+    # 3. Build message
     if response != CLOSED_STATE:
-        msg = f"📢 Registration state CHANGED:\n{json.dumps(response, indent=2)}"
-        requests.post(
-            f"https://api.telegram.org/bot{tg_bot_token}/sendMessage",
-            data={"chat_id": tg_chat_id, "text": msg}
-        )
+        msg = f"📢 Registration state CHANGED!\n👉 @ofice0_0 @MuhammaddFouadd\n{json.dumps(response, indent=2)}"
+    else:
+        msg = f"ℹ️ Registration still @ofice0_0 closed.\n{json.dumps(response, indent=2)}"
+
+    # Always send Telegram message
+    requests.post(
+        f"https://api.telegram.org/bot{tg_bot_token}/sendMessage",
+        data={"chat_id": tg_chat_id, "text": msg}
+    )
 
     # Always return the API response
     return jsonify(response)
