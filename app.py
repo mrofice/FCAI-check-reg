@@ -72,7 +72,7 @@ def check_registration():
     if response != CLOSED_STATE:
         msg = f"📢 Registration state CHANGED!\n👉 @ofice0_0 @MuhammaddFouadd\n{json.dumps(response, indent=2)}"
     else:
-        msg = f"ℹ️ Registration still @ofice0_0 closed.\n{json.dumps(response, indent=2)}"
+        msg = f"ℹ️ Registration still closed.\n{json.dumps(response, indent=2)}"
 
     # Always send Telegram message
     requests.post(
