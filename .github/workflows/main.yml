@@ -1,0 +1,40 @@
+name: check-registration
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # every 10 minutes (UTC)
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check registration page
+        env:
+          LOGIN_URL: http://193.227.14.58/api/authenticate
+          COURSES_URL: http://193.227.14.58/api/student-registration-courses?studentId=${{ secrets.STUDENT_ID }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          # 1. Login and get JWT token
+          jwt=$(curl -s -X POST "$LOGIN_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\",\"rememberMe\":true}" \
+            | jq -r '.id_token')
+
+          if [ "$jwt" = "null" ] || [ -z "$jwt" ]; then
+            msg="❌ Failed to log in. Check credentials."
+            curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/sendMessage" \
+              -d chat_id=$TG_CHAT_ID \
+              -d text="$msg"
+            exit 1
+          fi
+
+          # 2. Fetch registration courses
+          response=$(curl -s "$COURSES_URL" -H "Authorization: Bearer $jwt")
+
+          # 3. Send Telegram notification with current response
+          msg="📢 Registration check result:\n$response"
+          curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/sendMessage" \
+            -d chat_id=$TG_CHAT_ID \
+            --data-urlencode text="$msg"
