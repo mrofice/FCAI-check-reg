@@ -1,8 +1,31 @@
 from flask import Flask, jsonify
 import os
 import requests
+import json
 
 app = Flask(__name__)
+
+# The "closed" state to compare against
+CLOSED_STATE = {
+    "responseCode": -1,
+    "allowConflict": True,
+    "failedCourses": [],
+    "prerequistesSatistfiedCourses": [],
+    "registeredCourses": [],
+    "successfulCourses": [],
+    "maxElectiveHours": None,
+    "maxMandatoryHours": None,
+    "maxRegisteredHoursPerTerm": None,
+    "minRegisteredHoursPerTerm": None,
+    "maxElectiveCoursesOutsideDepartment": None,
+    "costPerChange": None,
+    "maxHoursForRepeatedCourses": None,
+    "maxNumForRepeatedCourses": None,
+    "costForRepeatedCourse": None,
+    "pendingCourses": None,
+    "excludeIncompleteFromMaxRegHours": None,
+    "majorGroup": None
+}
 
 @app.route("/")
 def home():
@@ -37,16 +60,21 @@ def check_registration():
         return jsonify({"status": "error", "message": msg}), 500
 
     # 2. Fetch registration courses
-    response = requests.get(
-        courses_url,
-        headers={"Authorization": f"Bearer {jwt}"}
-    ).text
+    try:
+        response = requests.get(
+            courses_url,
+            headers={"Authorization": f"Bearer {jwt}"}
+        ).json()
+    except Exception:
+        return jsonify({"status": "error", "message": "Failed to fetch courses"}), 500
 
-    # 3. Send Telegram message
-    msg = f"📢 Registration check result:\n{response}"
-    requests.post(
-        f"https://api.telegram.org/bot{tg_bot_token}/sendMessage",
-        data={"chat_id": tg_chat_id, "text": msg}
-    )
+    # 3. Compare with CLOSED_STATE
+    if response != CLOSED_STATE:
+        msg = f"📢 Registration state CHANGED:\n{json.dumps(response, indent=2)}"
+        requests.post(
+            f"https://api.telegram.org/bot{tg_bot_token}/sendMessage",
+            data={"chat_id": tg_chat_id, "text": msg}
+        )
 
-    return jsonify({"status": "ok", "response": response})
+    # Always return the API response
+    return jsonify(response)
