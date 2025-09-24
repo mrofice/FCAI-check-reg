@@ -45,7 +45,8 @@ def check_registration():
         login_res = requests.post(
             login_url,
             json={"username": username, "password": password, "rememberMe": True},
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
+            timeout=10
         ).json()
         jwt = login_res.get("id_token")
     except Exception:
@@ -63,10 +64,16 @@ def check_registration():
     try:
         response = requests.get(
             courses_url,
-            headers={"Authorization": f"Bearer {jwt}"}
+            headers={"Authorization": f"Bearer {jwt}"},
+            timeout=10
         ).json()
-    except Exception:
-        return jsonify({"status": "error", "message": "Failed to fetch courses"}), 500
+    except requests.exceptions.RequestException as e:
+        msg = f"⚠️ Server is down or not responding.\nError: {str(e)}"
+        requests.post(
+            f"https://api.telegram.org/bot{tg_bot_token}/sendMessage",
+            data={"chat_id": tg_chat_id, "text": msg}
+        )
+        return jsonify({"status": "error", "message": "Server is down"}), 503
 
     # 3. Build message
     if response != CLOSED_STATE:
