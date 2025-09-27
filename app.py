@@ -8,7 +8,7 @@ app = Flask(__name__)
 # The "closed" state to compare against
 CLOSED_STATE = {
     "responseCode": -1,
-    "allowConflict": True,
+    "allowConflict": False,  # updated here
     "failedCourses": [],
     "prerequistesSatistfiedCourses": [],
     "registeredCourses": [],
@@ -77,7 +77,7 @@ def check_registration():
 
     # 3. Build message
     if response != CLOSED_STATE:
-        msg = f"📢 Registration state CHANGED!\n👉 @ofice0_0 @MuhammaddFouadd\n{json.dumps(response, indent=2)}"
+        msg = f"📢 Registration state CHANGED!\n👉 @ofice0_0 @MuhammaddFouadd @mohamedatefx12 \n{json.dumps(response, indent=2)}"
     else:
         msg = f"ℹ️ Registration still closed.\n{json.dumps(response, indent=2)}"
 
