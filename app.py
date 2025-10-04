@@ -58,7 +58,7 @@ def check_registration():
             f"https://api.telegram.org/bot{tg_bot_token}/sendMessage",
             data={"chat_id": tg_chat_id, "text": msg}
         )
-        return jsonify({"status": "error", "message": msg}), 500
+        return jsonify({"status": "error", "message": msg}), 200
 
     # 2. Fetch registration courses
     try:
@@ -73,7 +73,7 @@ def check_registration():
             f"https://api.telegram.org/bot{tg_bot_token}/sendMessage",
             data={"chat_id": tg_chat_id, "text": msg}
         )
-        return jsonify({"status": "error", "message": "Server is down"}), 503
+        return jsonify({"status": "error", "message": "Server is down"}), 200
 
     # 3. Build message
     if response != CLOSED_STATE:
